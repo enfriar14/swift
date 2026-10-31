@@ -7,7 +7,7 @@
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
     <title>💗</title>
-    <link rel="icon" type="image/png" href="1.jpg">
+    <link rel="icon" type="image/jpeg" href="1.jpg" />
     <style>
       :root {
         --bg: #ffe8f1;
@@ -125,14 +125,29 @@
         cursor: pointer;
         color: var(--ink);
         font-size: 22px;
+        padding: 8px;
+        -webkit-tap-highlight-color: transparent;
+      }
+      button svg {
+        width: 22px;
+        height: 22px;
+        fill: currentColor;
+        display: block;
       }
       .play {
         width: 62px;
         height: 62px;
+        padding: 0;
         border-radius: 50%;
         background: var(--pink);
         color: #fff;
-        font-size: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .play svg {
+        width: 26px;
+        height: 26px;
       }
       .list {
         margin-top: 8px;
@@ -169,177 +184,161 @@
         aria-label="Seek"
       />
       <div class="ctrl">
-        <button id="prev" aria-label="Previous">⏮</button
-        ><button class="play" id="play" aria-label="Play">▶</button
-        ><button id="next" aria-label="Next">⏭</button>
+        <button id="prev" aria-label="Previous">
+          <svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9 12z" /></svg>
+        </button>
+        <button class="play" id="play" aria-label="Play">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+        </button>
+        <button id="next" aria-label="Next">
+          <svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5v14l11-7z" /></svg>
+        </button>
       </div>
       <div class="list" id="list"></div>
       <audio id="audio"></audio>
     </div>
     <script>
       // 🎀 YOUR SONG LIST
-// Put your MP3 files inside the "songs" folder.
+      // Put your MP3 files inside the "songs" folder.
+      const SONGS = [
+        {
+          title: "Clean",
+          artist: "Taylor Swift",
+          emoji: "💗",
+          src: "songs/Clean.mp3",
+        },
+        {
+          title: "State of Grace",
+          artist: "Taylor Swift",
+          emoji: "🌷",
+          src: "songs/stateofgrace.mp3",
+        },
+        {
+          title: "The Lakes",
+          artist: "Taylor Swift",
+          emoji: "🎀",
+          src: "songs/The Lakes.mp3",
+        },
+        {
+          title: "Tolerate It",
+          artist: "Taylor Swift",
+          emoji: "🌼",
+          src: "songs/tolerateit.mp3",
+        },
+        {
+          title: "Mr. Perfectly Fine",
+          artist: "Taylor Swift",
+          emoji: "🌺",
+          src: "songs/fine.mp3",
+        },
+      ];
 
-const SONGS = [
-    {
-        title: "Clean",
-        artist: "Taylor Swift",
-        emoji: "💗",
-        src: "songs/Clean.mp3"
-    },
+      // 🎵 MUSIC PLAYER
+      const $ = (id) => document.getElementById(id);
+      const audio = $("audio");
 
-    {
-        title: "State of Grace",
-        artist: "Taylor",
-        emoji: "🌷",
-        src: "songs/stateofgrace.mp3"
-    },
+      // Icons are SVG so phones never swap them for colorful emoji
+      const PLAY_ICON =
+        '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+      const PAUSE_ICON =
+        '<svg viewBox="0 0 24 24"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>';
 
-    {
-        title: "The Lakes",
-        artist: "Taylor Swift",
-        emoji: "🎀",
-        src: "songs/The Lakes.mp3"
-    },
-    {
-        title: "Tolerate It",
-        artist: "Taylor Swift",
-        emoji: "🌼",
-        src: "songs/tolerateit.mp3"
-    },
-    {
-        title: "Mr. Perfectly Fine",
-        artist: "Taylor Swift",
-        emoji: "🌺",
-        src: "songs/fine.mp3"
-    },
-    
-];
+      let currentSong = 0;
 
+      // DISPLAY SONG INFORMATION
+      function show() {
+        const song = SONGS[currentSong];
 
-// 🎵 MUSIC PLAYER
-const $ = id => document.getElementById(id);
+        $("title").textContent = song.title;
+        $("by").textContent = song.artist;
+        $("art").textContent = song.emoji || "🎵";
 
-const audio = $("audio");
+        $("list").innerHTML = "";
 
-let currentSong = 0;
-
-
-// DISPLAY SONG INFORMATION
-function show() {
-    const song = SONGS[currentSong];
-
-    $("title").textContent = song.title;
-    $("by").textContent = song.artist;
-    $("art").textContent = song.emoji || "🎵";
-
-    $("list").innerHTML = "";
-
-    SONGS.forEach((song, index) => {
-        const button = document.createElement("button");
-
-        button.className =
-            "row" + (index === currentSong ? " cur" : "");
-
-        button.textContent =
-            (song.emoji || "🎵") + " " + song.title;
-
-        button.onclick = () => go(index);
-
-        $("list").appendChild(button);
-    });
-}
-
-
-// PLAY SELECTED SONG
-function go(index) {
-    if (index < 0 || index >= SONGS.length) return;
-
-    currentSong = index;
-
-    audio.src = SONGS[currentSong].src;
-
-    show();
-
-    audio.play().catch(error => {
-        console.error("Unable to play song:", error);
-    });
-}
-
-
-// PLAY / PAUSE BUTTON
-$("play").onclick = () => {
-    if (!audio.src) {
-        audio.src = SONGS[currentSong].src;
-    }
-
-    if (audio.paused) {
-        audio.play().catch(error => {
-            console.error(error);
+        SONGS.forEach((song, index) => {
+          const button = document.createElement("button");
+          button.className = "row" + (index === currentSong ? " cur" : "");
+          button.textContent = (song.emoji || "🎵") + " " + song.title;
+          button.onclick = () => go(index);
+          $("list").appendChild(button);
         });
-    } else {
-        audio.pause();
-    }
-};
+      }
 
+      // PLAY SELECTED SONG
+      function go(index) {
+        if (index < 0 || index >= SONGS.length) return;
 
-// NEXT BUTTON
-$("next").onclick = () => {
-    go((currentSong + 1) % SONGS.length);
-};
+        currentSong = index;
+        audio.src = SONGS[currentSong].src;
+        show();
 
+        audio.play().catch((error) => {
+          console.error("Unable to play song:", error);
+        });
+      }
 
-// PREVIOUS BUTTON
-$("prev").onclick = () => {
-    go((currentSong - 1 + SONGS.length) % SONGS.length);
-};
+      // PLAY / PAUSE BUTTON
+      $("play").onclick = () => {
+        if (!audio.src) {
+          audio.src = SONGS[currentSong].src;
+        }
 
+        if (audio.paused) {
+          audio.play().catch((error) => {
+            console.error(error);
+          });
+        } else {
+          audio.pause();
+        }
+      };
 
-// PLAY / PAUSE ICON
-audio.onplay = () => {
-    $("play").textContent = "⏸";
-};
+      // NEXT BUTTON
+      $("next").onclick = () => {
+        go((currentSong + 1) % SONGS.length);
+      };
 
-audio.onpause = () => {
-    $("play").textContent = "▶";
-};
+      // PREVIOUS BUTTON
+      $("prev").onclick = () => {
+        go((currentSong - 1 + SONGS.length) % SONGS.length);
+      };
 
+      // PLAY / PAUSE ICON
+      audio.onplay = () => {
+        $("play").innerHTML = PAUSE_ICON;
+        $("play").setAttribute("aria-label", "Pause");
+      };
 
-// AUTOMATICALLY PLAY NEXT SONG
-audio.onended = () => {
-    go((currentSong + 1) % SONGS.length);
-};
+      audio.onpause = () => {
+        $("play").innerHTML = PLAY_ICON;
+        $("play").setAttribute("aria-label", "Play");
+      };
 
+      // AUTOMATICALLY PLAY NEXT SONG
+      audio.onended = () => {
+        go((currentSong + 1) % SONGS.length);
+      };
 
-// UPDATE PROGRESS BAR
-audio.ontimeupdate = () => {
-    if (!audio.duration) return;
+      // UPDATE PROGRESS BAR
+      audio.ontimeupdate = () => {
+        if (!audio.duration) return;
 
-    const progress =
-        (audio.currentTime / audio.duration) * 100;
+        const progress = (audio.currentTime / audio.duration) * 100;
 
-    $("seek").value = progress;
+        $("seek").value = progress;
+        $("seek").style.setProperty("--p", progress + "%");
+      };
 
-    $("seek").style.setProperty(
-        "--p",
-        progress + "%"
-    );
-};
+      // SEEK THROUGH SONG
+      $("seek").oninput = (event) => {
+        if (audio.duration) {
+          audio.currentTime = (event.target.value / 100) * audio.duration;
+        }
+      };
 
-
-// SEEK THROUGH SONG
-$("seek").oninput = event => {
-    if (audio.duration) {
-        audio.currentTime =
-            (event.target.value / 100) * audio.duration;
-    }
-};
-
-
-// INITIALIZE PLAYER
-if (SONGS.length > 0) {
-    show();
-}
+      // INITIALIZE PLAYER
+      if (SONGS.length > 0) {
+        show();
+      }
     </script>
   </body>
 </html>
