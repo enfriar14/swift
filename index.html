@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>💗</title>
+    <link rel="icon" type="image/png" href="1.jpg">
+    <style>
+      :root {
+        --bg: #ffe8f1;
+        --card: #fff;
+        --ink: #8a3560;
+        --soft: #d48bad;
+        --pink: #ff6fa8;
+        --line: #ffd6e6;
+        box-sizing: border-box;
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --bg: #2a0e1e;
+          --card: #3d1830;
+          --ink: #ffd9ea;
+          --soft: #d98fb3;
+          --line: #5a2440;
+        }
+      }
+      :root[data-theme="dark"] {
+        --bg: #2a0e1e;
+        --card: #3d1830;
+        --ink: #ffd9ea;
+        --soft: #d98fb3;
+        --line: #5a2440;
+      }
+      html {
+        scroll-padding-top: env(safe-area-inset-top, 0px);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg);
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+        color: var(--ink);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px 14px;
+      }
+      .card {
+        width: 100%;
+        max-width: 340px;
+        background: var(--card);
+        border-radius: 28px;
+        padding: 26px;
+        text-align: center;
+        box-shadow: 0 12px 36px rgba(255, 111, 168, 0.22);
+      }
+      .art {
+        font-size: 64px;
+        width: 130px;
+        height: 130px;
+        margin: 0 auto 16px;
+        border-radius: 32px;
+        background: var(--line);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      h1 {
+        font-size: 20px;
+        margin: 0;
+      }
+      .by {
+        color: var(--soft);
+        font-size: 14px;
+        margin: 4px 0 18px;
+      }
+      input {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 6px;
+        border-radius: 99px;
+        background: linear-gradient(
+          90deg,
+          var(--pink) var(--p, 0%),
+          var(--line) var(--p, 0%)
+        );
+        outline: none;
+      }
+      input::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--pink);
+      }
+      input::-moz-range-thumb {
+        width: 16px;
+        height: 16px;
+        border: 0;
+        border-radius: 50%;
+        background: var(--pink);
+      }
+      .ctrl {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 22px;
+        margin: 18px 0 12px;
+      }
+      button {
+        border: 0;
+        background: none;
+        cursor: pointer;
+        color: var(--ink);
+        font-size: 22px;
+      }
+      .play {
+        width: 62px;
+        height: 62px;
+        border-radius: 50%;
+        background: var(--pink);
+        color: #fff;
+        font-size: 24px;
+      }
+      .list {
+        margin-top: 8px;
+        border-top: 1px solid var(--line);
+        padding-top: 8px;
+      }
+      .row {
+        display: block;
+        width: 100%;
+        text-align: left;
+        font-size: 14px;
+        padding: 9px 8px;
+        border-radius: 12px;
+        color: var(--ink);
+      }
+      .row.cur {
+        background: var(--line);
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="art" id="art">🎵</div>
+      <h1 id="title">—</h1>
+      <div class="by" id="by">—</div>
+      <input
+        type="range"
+        id="seek"
+        min="0"
+        max="100"
+        value="0"
+        step="0.1"
+        aria-label="Seek"
+      />
+      <div class="ctrl">
+        <button id="prev" aria-label="Previous">⏮</button
+        ><button class="play" id="play" aria-label="Play">▶</button
+        ><button id="next" aria-label="Next">⏭</button>
+      </div>
+      <div class="list" id="list"></div>
+      <audio id="audio"></audio>
+    </div>
+    <script>
+      // 🎀 YOUR SONG LIST
+// Put your MP3 files inside the "songs" folder.
+
+const SONGS = [
+    {
+        title: "Clean",
+        artist: "Taylor Swift",
+        emoji: "💗",
+        src: "songs/Clean.mp3"
+    },
+
+    {
+        title: "State of Grace",
+        artist: "Artist Name",
+        emoji: "🌷",
+        src: "songs/stateofgrace.mp3"
+    },
+
+    {
+        title: "The Lakes",
+        artist: "Artist Name",
+        emoji: "🎀",
+        src: "songs/The Lakes.mp3"
+    },
+    {
+        title: "Tolerate It",
+        artist: "Taylor Swift",
+        emoji: "🌼",
+        src: "songs/tolerateit.mp3"
+    },
+    {
+        title: "Mr. Perfectly Fine",
+        artist: "Taylor Swift",
+        emoji: "🌺",
+        src: "songs/fine.mp3"
+    },
+    
+];
+
+
+// 🎵 MUSIC PLAYER
+const $ = id => document.getElementById(id);
+
+const audio = $("audio");
+
+let currentSong = 0;
+
+
+// DISPLAY SONG INFORMATION
+function show() {
+    const song = SONGS[currentSong];
+
+    $("title").textContent = song.title;
+    $("by").textContent = song.artist;
+    $("art").textContent = song.emoji || "🎵";
+
+    $("list").innerHTML = "";
+
+    SONGS.forEach((song, index) => {
+        const button = document.createElement("button");
+
+        button.className =
+            "row" + (index === currentSong ? " cur" : "");
+
+        button.textContent =
+            (song.emoji || "🎵") + " " + song.title;
+
+        button.onclick = () => go(index);
+
+        $("list").appendChild(button);
+    });
+}
+
+
+// PLAY SELECTED SONG
+function go(index) {
+    if (index < 0 || index >= SONGS.length) return;
+
+    currentSong = index;
+
+    audio.src = SONGS[currentSong].src;
+
+    show();
+
+    audio.play().catch(error => {
+        console.error("Unable to play song:", error);
+    });
+}
+
+
+// PLAY / PAUSE BUTTON
+$("play").onclick = () => {
+    if (!audio.src) {
+        audio.src = SONGS[currentSong].src;
+    }
+
+    if (audio.paused) {
+        audio.play().catch(error => {
+            console.error(error);
+        });
+    } else {
+        audio.pause();
+    }
+};
+
+
+// NEXT BUTTON
+$("next").onclick = () => {
+    go((currentSong + 1) % SONGS.length);
+};
+
+
+// PREVIOUS BUTTON
+$("prev").onclick = () => {
+    go((currentSong - 1 + SONGS.length) % SONGS.length);
+};
+
+
+// PLAY / PAUSE ICON
+audio.onplay = () => {
+    $("play").textContent = "⏸";
+};
+
+audio.onpause = () => {
+    $("play").textContent = "▶";
+};
+
+
+// AUTOMATICALLY PLAY NEXT SONG
+audio.onended = () => {
+    go((currentSong + 1) % SONGS.length);
+};
+
+
+// UPDATE PROGRESS BAR
+audio.ontimeupdate = () => {
+    if (!audio.duration) return;
+
+    const progress =
+        (audio.currentTime / audio.duration) * 100;
+
+    $("seek").value = progress;
+
+    $("seek").style.setProperty(
+        "--p",
+        progress + "%"
+    );
+};
+
+
+// SEEK THROUGH SONG
+$("seek").oninput = event => {
+    if (audio.duration) {
+        audio.currentTime =
+            (event.target.value / 100) * audio.duration;
+    }
+};
+
+
+// INITIALIZE PLAYER
+if (SONGS.length > 0) {
+    show();
+}
+    </script>
+  </body>
+</html>
